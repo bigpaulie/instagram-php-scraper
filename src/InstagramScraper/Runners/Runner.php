@@ -72,7 +72,7 @@ class Runner
         /** @var Media $media */
         $media = $this->instagram->getMediaByCode($this->mediaId);
         $total = $media->getCommentsCount();
-        $cursor = 0;
+        $cursor = $this->cache->get('cursor', 0);
 
         $notification = 'Starting processes, there are '. $total . ' comments for media '. $this->mediaId;
         self::sendNotification($notification);
@@ -82,9 +82,9 @@ class Runner
          *
          * @var int
          */
-        $tick = 10;
+        $tick = 100;
 
-        $lastId = null;
+        $lastId = $this->cache->get('last_id');
         while ($cursor <= $total) {
 
             /** @var \InstagramScraper\Model\Comment[] $comments */
@@ -102,7 +102,8 @@ class Runner
                 ]);
 
                 $cursor++;
-                $lastId = $comment->getId();
+                $this->cache->set('last_id', $comment->getId());
+                $this->cache->set('cursor', $cursor);
             }
 
             if (($total - $cursor) <= $tick) {
@@ -113,10 +114,11 @@ class Runner
                 }
             }
 
+            if ($cursor % 10000 == 0) {
+                self::sendNotification('Progress update '. $cursor. '/'.  $total . ' comments');
+            }
+
             echo "Total comments {$total} cursor at {$cursor} last id {$lastId} comments this tick {$count} \n";
-//            if ($count == 0) {
-//                exit(0);
-//            }
         }
     }
 }
