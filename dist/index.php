@@ -1,24 +1,25 @@
 <?php
 
-require_once 'vendor/autoload.php';
+set_time_limit(0);
 
+require_once '../vendor/autoload.php';
+
+/** @var \InstagramScraper\Cache\MemcacheDriver $cache */
 $cache = \InstagramScraper\Cache\MemcacheDriver::instance();
 
-/** @var \InstagramScraper\Instagram $instagram */
-$instagram = \InstagramScraper\Instagram::withCredentials('username', 'password', $cache);
-$instagram->login();
-
-/** @var \InstagramScraper\Model\Comment[] $comments */
-$comments = $instagram->getMediaCommentsByCode('BG3Iz-No1IZ', 8000);
-
+/** @var \League\Csv\AbstractCsv|\League\Csv\Writer $writter */
 $writter = \League\Csv\Writer::createFromPath('./comments.csv');
 
-/** @var \InstagramScraper\Model\Comment $comment */
-foreach ($comments as $comment) {
-    $writter->insertOne([
-        $comment->getId(),
-        $comment->getOwner(),
-        $comment->getText(),
-        $comment->getChildCommentsCount()
-    ]);
+/** @var string $mediaId */
+$mediaId = '';
+
+try {
+    /** @var \InstagramScraper\Instagram $instagram */
+    $instagram = \InstagramScraper\Instagram::withCredentials('username', 'password', $cache);
+    $logged = $instagram->login();
+
+    $runner = new \InstagramScraper\Runners\Runner($writter, $instagram, $mediaId);
+    $runner->loop();
+} catch (\Throwable $e) {
+    echo get_class($e) . ' caught: '. $e->getMessage() . "\n";
 }

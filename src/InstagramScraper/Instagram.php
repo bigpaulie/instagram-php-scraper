@@ -716,6 +716,7 @@ class Instagram
                 'after' => (string)$maxId
             ]);
 
+            sleep(rand(1, 5));
             $commentsUrl = Endpoints::getCommentsBeforeCommentIdByCode($variables);
             $response = Request::get($commentsUrl, $this->generateHeaders($this->userSession, $this->generateGisToken($variables)));
             
