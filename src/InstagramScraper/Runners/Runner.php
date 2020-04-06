@@ -57,7 +57,7 @@ class Runner
     public static function sendNotification(string $message)
     {
         $client = new Client();
-        $request = new Request('GET', 'https://api.telegram.org/bot1289841030:AAEZtdgLqhwGICIKHBXrq7cILL2SGmxxbN0/sendMessage?chat_id=-487558137&text='.$message.'&disable_notification=true');
+        $request = new Request('GET', '');
         $client->send($request);
     }
 
