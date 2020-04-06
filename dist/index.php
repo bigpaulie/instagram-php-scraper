@@ -21,5 +21,6 @@ try {
     $runner = new \InstagramScraper\Runners\Runner($writter, $instagram, $mediaId);
     $runner->loop();
 } catch (\Throwable $e) {
-    echo get_class($e) . ' caught: '. $e->getMessage() . "\n";
+    $notification = get_class($e) . ' caught: '. $e->getMessage() . "\n";
+    \InstagramScraper\Runners\Runner::sendNotification($notification);
 }

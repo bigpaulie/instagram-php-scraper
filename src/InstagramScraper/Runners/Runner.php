@@ -4,6 +4,8 @@
 namespace InstagramScraper\Runners;
 
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 use InstagramScraper\Cache\MemcacheDriver;
 use InstagramScraper\Instagram;
 use InstagramScraper\Model\Media;
@@ -50,15 +52,13 @@ class Runner
     }
 
     /**
-     * @return string
-     * @throws \InstagramScraper\Exception\InstagramException
-     * @throws \InstagramScraper\Exception\InstagramNotFoundException
+     * @param string $message
      */
-    private function getMediaCommentsCount():string
+    public static function sendNotification(string $message)
     {
-        /** @var Media $media */
-        $media = $this->instagram->getMediaByCode($this->mediaId);
-        return $media->getCommentsCount();
+        $client = new Client();
+        $request = new Request('GET', 'https://api.telegram.org/bot1289841030:AAEZtdgLqhwGICIKHBXrq7cILL2SGmxxbN0/sendMessage?chat_id=-487558137&text='.$message.'&disable_notification=true');
+        $client->send($request);
     }
 
     /**
@@ -73,6 +73,9 @@ class Runner
         $media = $this->instagram->getMediaByCode($this->mediaId);
         $total = $media->getCommentsCount();
         $cursor = 0;
+
+        $notification = 'Starting processes, there are '. $total . ' comments for media '. $this->mediaId;
+        self::sendNotification($notification);
 
         /**
          * The maximum number of items (comments) per tick
@@ -105,6 +108,7 @@ class Runner
             if (($total - $cursor) <= $tick) {
                 $tick = ($total - $cursor);
                 if ($tick == 0) {
+                    self::sendNotification('Process done '. $total . ' comments fetched');
                     exit(0);
                 }
             }
